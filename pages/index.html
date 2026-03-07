@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lumio – AI assistant for new parents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --purple: #7C3AED; --pink: #EC4899; --light: #FAF5FF; --dark: #1E1B4B; --gray: #6B7280; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: var(--dark); line-height: 1.6; }
+
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #f3f4f6; z-index: 100; flex-wrap: wrap; gap: 12px; }
+    .logo { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+    .lang-switcher { display: flex; gap: 6px; flex-wrap: wrap; }
+    .lang-btn { background: none; border: 2px solid #E5E7EB; border-radius: 50px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--gray); display: flex; align-items: center; gap: 5px; }
+    .lang-btn:hover { border-color: var(--purple); color: var(--purple); }
+    .lang-btn.active { background: linear-gradient(135deg, var(--purple), var(--pink)); border-color: transparent; color: white; }
+
+    .nav-cta { background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; white-space: nowrap; }
+    .nav-cta:hover { opacity: 0.9; }
+
+    .hero { background: linear-gradient(135deg, #FAF5FF 0%, #FDF2F8 100%); padding: 80px 40px 100px; text-align: center; }
+    .badge { display: inline-block; background: rgba(124,58,237,0.1); color: var(--purple); padding: 6px 16px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; margin-bottom: 24px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.15; max-width: 700px; margin: 0 auto 24px; }
+    h1 span { background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero-sub { font-size: 1.2rem; color: var(--gray); max-width: 540px; margin: 0 auto 48px; }
+
+    .waitlist-form { background: white; border-radius: 20px; padding: 32px; max-width: 500px; margin: 0 auto; box-shadow: 0 20px 60px rgba(124,58,237,0.15); }
+    .waitlist-form h3 { font-size: 1.1rem; margin-bottom: 20px; color: var(--dark); }
+    .form-group { margin-bottom: 16px; }
+    .form-group input, .form-group textarea { width: 100%; padding: 14px 18px; border: 2px solid #E5E7EB; border-radius: 12px; font-size: 0.95rem; font-family: inherit; transition: border-color 0.2s; outline: none; resize: none; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--purple); }
+    .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s; }
+    .submit-btn:hover { transform: translateY(-2px); }
+    .form-note { font-size: 0.8rem; color: var(--gray); margin-top: 12px; text-align: center; }
+    .success-msg { display: none; text-align: center; padding: 20px; }
+    .success-msg .emoji { font-size: 3rem; margin-bottom: 12px; }
+    .success-msg h3 { font-size: 1.3rem; color: var(--purple); margin-bottom: 8px; }
+    .success-msg p { color: var(--gray); font-size: 0.95rem; }
+
+    .counter { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
+    .counter-item { text-align: center; }
+    .counter-item .num { font-size: 2rem; font-weight: 900; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .counter-item .label { font-size: 0.8rem; color: var(--gray); }
+
+    .section { padding: 80px 40px; max-width: 1100px; margin: 0 auto; }
+    .section-label { text-align: center; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--purple); margin-bottom: 16px; }
+    .section-title { text-align: center; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; margin-bottom: 48px; }
+
+    .problems { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+    .problem-card { background: #FFF7ED; border-radius: 16px; padding: 28px; border-left: 4px solid #F97316; }
+    .problem-card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .problem-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .problem-card p { font-size: 0.9rem; color: var(--gray); }
+
+    .how-bg { background: var(--light); padding: 80px 40px; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; max-width: 900px; margin: 0 auto; }
+    .step { text-align: center; }
+    .step-num { width: 56px; height: 56px; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; margin: 0 auto 16px; }
+    .step h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 0.875rem; color: var(--gray); }
+
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .feature-card { border: 2px solid #F3F4F6; border-radius: 16px; padding: 28px; transition: border-color 0.2s, transform 0.2s; }
+    .feature-card:hover { border-color: var(--purple); transform: translateY(-4px); }
+    .feature-card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .feature-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.875rem; color: var(--gray); }
+
+    .testimonials-bg { background: linear-gradient(135deg, var(--purple), var(--pink)); padding: 80px 40px; }
+    .testimonials-bg .section-label { color: rgba(255,255,255,0.7); }
+    .testimonials-bg .section-title { color: white; }
+    .testimonials { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
+    .testimonial { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 16px; padding: 28px; color: white; }
+    .testimonial p { font-size: 0.95rem; margin-bottom: 16px; font-style: italic; opacity: 0.9; }
+    .testimonial .author { font-size: 0.85rem; font-weight: 700; opacity: 0.8; }
+
+    .cta-bottom { text-align: center; padding: 80px 40px; background: var(--light); }
+    .cta-bottom h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; margin-bottom: 16px; }
+    .cta-bottom p { color: var(--gray); margin-bottom: 32px; font-size: 1.05rem; }
+    .cta-btn { display: inline-block; background: linear-gradient(135deg, var(--purple), var(--pink)); color: white; padding: 18px 48px; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; border: none; transition: transform 0.2s; }
+    .cta-btn:hover { transform: translateY(-3px); }
+
+    footer { text-align: center; padding: 32px 40px; border-top: 1px solid #F3F4F6; color: var(--gray); font-size: 0.85rem; }
+    footer a { color: var(--purple); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .hero { padding: 60px 20px 80px; }
+      .section { padding: 60px 20px; }
+      .waitlist-form { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">👶 Lumio</div>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn" onclick="setLang('sr', this)">🇷🇸 SR</button>
+      <button class="lang-btn active" onclick="setLang('en', this)">🇬🇧 EN</button>
+      <button class="lang-btn" onclick="setLang('ru', this)">🇷🇺 RU</button>
+    </div>
+    <button class="nav-cta" onclick="scrollToForm()" data-i18n="nav_cta"></button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="badge" data-i18n="badge"></div>
+  <h1 data-i18n="hero_title_html"></h1>
+  <p class="hero-sub" data-i18n="hero_sub"></p>
+
+  <div class="waitlist-form" id="waitlist-form">
+    <h3 data-i18n="form_title"></h3>
+    <div id="form-content">
+      <div class="form-group">
+        <input type="email" id="email-input" data-i18n-placeholder="form_email_placeholder" />
+      </div>
+      <div class="form-group">
+        <textarea id="problem-input" rows="3" data-i18n-placeholder="form_problem_placeholder"></textarea>
+      </div>
+      <button class="submit-btn" onclick="submitForm()" data-i18n="form_btn"></button>
+      <p class="form-note" data-i18n="form_note"></p>
+    </div>
+    <div class="success-msg" id="success-msg">
+      <div class="emoji">🎉</div>
+      <h3 data-i18n="success_title"></h3>
+      <p data-i18n="success_msg"></p>
+    </div>
+  </div>
+
+  <div class="counter">
+    <div class="counter-item">
+      <div class="num" id="counter">0</div>
+      <div class="label" data-i18n="counter_waitlist"></div>
+    </div>
+    <div class="counter-item">
+      <div class="num">~3</div>
+      <div class="label" data-i18n="counter_months"></div>
+    </div>
+    <div class="counter-item">
+      <div class="num">Free</div>
+      <div class="label" data-i18n="counter_free"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <p class="section-label" data-i18n="problem_label"></p>
+  <h2 class="section-title" data-i18n="problem_title"></h2>
+  <div class="problems">
+    <div class="problem-card"><div class="icon">🔍</div><h4 data-i18n="p1_title"></h4><p data-i18n="p1_text"></p></div>
+    <div class="problem-card"><div class="icon">⏰</div><h4 data-i18n="p2_title"></h4><p data-i18n="p2_text"></p></div>
+    <div class="problem-card"><div class="icon">🧩</div><h4 data-i18n="p3_title"></h4><p data-i18n="p3_text"></p></div>
+  </div>
+</section>
+
+<div class="how-bg">
+  <div style="max-width:1100px;margin:0 auto">
+    <p class="section-label" data-i18n="how_label"></p>
+    <h2 class="section-title" data-i18n="how_title"></h2>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h4 data-i18n="s1_title"></h4><p data-i18n="s1_text"></p></div>
+      <div class="step"><div class="step-num">2</div><h4 data-i18n="s2_title"></h4><p data-i18n="s2_text"></p></div>
+      <div class="step"><div class="step-num">3</div><h4 data-i18n="s3_title"></h4><p data-i18n="s3_text"></p></div>
+      <div class="step"><div class="step-num">4</div><h4 data-i18n="s4_title"></h4><p data-i18n="s4_text"></p></div>
+    </div>
+  </div>
+</div>
+
+<section class="section">
+  <p class="section-label" data-i18n="feat_label"></p>
+  <h2 class="section-title" data-i18n="feat_title"></h2>
+  <div class="features">
+    <div class="feature-card"><div class="icon">🧠</div><h4 data-i18n="f1_title"></h4><p data-i18n="f1_text"></p></div>
+    <div class="feature-card"><div class="icon">📊</div><h4 data-i18n="f2_title"></h4><p data-i18n="f2_text"></p></div>
+    <div class="feature-card"><div class="icon">📋</div><h4 data-i18n="f3_title"></h4><p data-i18n="f3_text"></p></div>
+    <div class="feature-card"><div class="icon">💬</div><h4 data-i18n="f4_title"></h4><p data-i18n="f4_text"></p></div>
+    <div class="feature-card"><div class="icon">🔔</div><h4 data-i18n="f5_title"></h4><p data-i18n="f5_text"></p></div>
+    <div class="feature-card"><div class="icon">🔒</div><h4 data-i18n="f6_title"></h4><p data-i18n="f6_text"></p></div>
+  </div>
+</section>
+
+<div class="testimonials-bg">
+  <p class="section-label" data-i18n="testi_label"></p>
+  <h2 class="section-title" data-i18n="testi_title"></h2>
+  <div class="testimonials">
+    <div class="testimonial"><p data-i18n="t1_text"></p><div class="author" data-i18n="t1_author"></div></div>
+    <div class="testimonial"><p data-i18n="t2_text"></p><div class="author" data-i18n="t2_author"></div></div>
+    <div class="testimonial"><p data-i18n="t3_text"></p><div class="author" data-i18n="t3_author"></div></div>
+  </div>
+</div>
+
+<div class="cta-bottom">
+  <h2 data-i18n="cta_title"></h2>
+  <p data-i18n="cta_sub"></p>
+  <button class="cta-btn" onclick="scrollToForm()" data-i18n="cta_btn"></button>
+</div>
+
+<footer>
+  <p>© 2025 Lumio · <a href="#">Privacy Policy</a> · <a href="#" data-i18n="footer_contact"></a></p>
+  <p style="margin-top:8px" data-i18n="footer_made"></p>
+</footer>
+
+<script>
+const translations = {
+  sr: {
+    nav_cta: "Prijavi se besplatno",
+    badge: "🚀 Uskoro dostupno — Prijavi se na waitlistu",
+    hero_title_html: "Znaš li zašto se tvoja beba <span>budi noću?</span>",
+    hero_sub: "Lumio je AI asistent koji zaista poznaje tvoje dete — pamti, analizira i daje personalizovane savete, ne generičke odgovore.",
+    form_title: "🎉 Pridruži se waitlisti — potpuno besplatno",
+    form_email_placeholder: "tvoj@email.com",
+    form_problem_placeholder: "Koji je tvoj najveći izazov kao mladog roditelja? (opciono)",
+    form_btn: "Prijavi me na waitlistu →",
+    form_note: "🔒 Bez spama. Samo obaveštenje kada se Lumio lansira.",
+    success_title: "Uspešno si na listi!",
+    success_msg: "Hvala! Javiću ti se čim Lumio bude spreman za testiranje.",
+    counter_waitlist: "roditelja na waitlisti",
+    counter_months: "meseca do lansiranja",
+    counter_free: "osnovna verzija",
+    problem_label: "Problem",
+    problem_title: "Svaki roditelj zna ovaj osećaj 😰",
+    p1_title: "Generički odgovori", p1_text: "Guglate simptome i dobijate iste odgovore za svako dete. Ali vaša beba nije svako dete.",
+    p2_title: "Pedijatar ima 10 minuta", p2_text: "Poseta traje kratko, vi imate 20 pitanja, a do sledeće posete prođe mesec dana.",
+    p3_title: "Obrasci koje ne primećujete", p3_text: "Veza između hrane, spavanja i raspoloženja postoji — ali ko ima vremena da je analizira?",
+    how_label: "Kako funkcioniše", how_title: "Jednostavno kao razgovor",
+    s1_title: "Uneseš profil deteta", s1_text: "Starost, težina, ishrana, navike spavanja — jednom, pa zaboraviš.",
+    s2_title: "Vodiš dnevnik", s2_text: "Brzo beležiš šta je jelo i kako spavalo. Svega 30 sekundi dnevno.",
+    s3_title: "Pitaš šta god hoćeš", s3_text: "Lumio poznaje baš tvoje dete i daje personalizovane, konkretne odgovore.",
+    s4_title: "Otkriva obrasce", s4_text: "Automatski detektuje veze koje ti nikad ne bi primetio sam.",
+    feat_label: "Funkcionalnosti", feat_title: "Sve što ti treba na jednom mestu",
+    f1_title: "AI koji pamti", f1_text: "Svaki razgovor uzima u obzir celu istoriju tvog deteta.",
+    f2_title: "Detekcija obrazaca", f2_text: "Automatski otkriva korelacije između hrane, spavanja i raspoloženja.",
+    f3_title: "PDF za pedijatra", f3_text: "Generiši kompletan izveštaj pre posete doktoru. Štedi vreme oboma.",
+    f4_title: "Neograničena pitanja", f4_text: "Pitaj u 3 ujutru kad beba plače. Nema čekanja, uvek dostupno.",
+    f5_title: "Pametni podsetnici", f5_text: "Vakcinalni kalendar, razvojni milestoni, vreme za pedijatra — sve automatski.",
+    f6_title: "Privatnost pre svega", f6_text: "Podaci o tvom detetu se nikad ne dele. GDPR compliant, enkriptovano.",
+    testi_label: "Šta kažu roditelji", testi_title: "Glasovi iz zajednice",
+    t1_text: "\"Konačno nešto što razume da moja beba nije ista kao komšijina. Čekam lansiranje!\"", t1_author: "— Milica, mama 8-mesečne Lene",
+    t2_text: "\"Ideja sa obrascima je genijalna. Nikad ne bih povezao pasulj i noćno buđenje bez Lumia.\"", t2_author: "— Marko, tata 6-mesečnog Nikole",
+    t3_text: "\"Kao mlada mama, stalno sam guglala iste stvari. Lumio bi mi uštedeo toliko stresa.\"", t3_author: "— Ana, mama 4-mesečne Sofije",
+    cta_title: "Budi među prvim roditeljima 🚀",
+    cta_sub: "Pridruži se waitlisti i dobij <strong>6 meseci premium besplatno</strong> pri lansiranju.",
+    cta_btn: "Prijavi se besplatno →",
+    footer_contact: "Kontakt", footer_made: "Napravljeno sa ❤️ za mlade roditelje"
+  },
+  en: {
+    nav_cta: "Join for free",
+    badge: "🚀 Coming soon — Join the waitlist",
+    hero_title_html: "Do you know why your baby <span>wakes up at night?</span>",
+    hero_sub: "Lumio is an AI assistant that truly knows your child — it remembers, analyzes, and gives personalized advice, not generic answers.",
+    form_title: "🎉 Join the waitlist — completely free",
+    form_email_placeholder: "your@email.com",
+    form_problem_placeholder: "What's your biggest challenge as a new parent? (optional)",
+    form_btn: "Join the waitlist →",
+    form_note: "🔒 No spam. Only a notification when Lumio launches.",
+    success_title: "You're on the list!",
+    success_msg: "Thank you! I'll reach out as soon as Lumio is ready for testing.",
+    counter_waitlist: "parents on the waitlist",
+    counter_months: "months to launch",
+    counter_free: "basic version",
+    problem_label: "The Problem",
+    problem_title: "Every parent knows this feeling 😰",
+    p1_title: "Generic answers", p1_text: "You google symptoms and get the same answers for every baby. But your baby isn't every baby.",
+    p2_title: "10 minutes with the doctor", p2_text: "Appointments are short, you have 20 questions, and the next visit is a month away.",
+    p3_title: "Patterns you don't notice", p3_text: "There's a connection between food, sleep and mood — but who has time to analyze it?",
+    how_label: "How it works", how_title: "As simple as a conversation",
+    s1_title: "Create your baby's profile", s1_text: "Age, weight, diet, sleep habits — once, and you're done.",
+    s2_title: "Keep a journal", s2_text: "Quickly log what they ate and how they slept. Just 30 seconds a day.",
+    s3_title: "Ask anything", s3_text: "Lumio knows your specific child and gives personalized, concrete answers.",
+    s4_title: "Discovers patterns", s4_text: "Automatically detects connections you'd never notice on your own.",
+    feat_label: "Features", feat_title: "Everything you need in one place",
+    f1_title: "AI that remembers", f1_text: "Every conversation takes your child's full history into account.",
+    f2_title: "Pattern detection", f2_text: "Automatically finds correlations between food, sleep and mood.",
+    f3_title: "PDF for your doctor", f3_text: "Generate a full report before your appointment. Saves time for both of you.",
+    f4_title: "Unlimited questions", f4_text: "Ask at 3am when the baby cries. No waiting, always available.",
+    f5_title: "Smart reminders", f5_text: "Vaccine schedule, developmental milestones, doctor visits — all automatic.",
+    f6_title: "Privacy first", f6_text: "Your child's data is never shared. GDPR compliant, encrypted, secure.",
+    testi_label: "What parents say", testi_title: "Voices from the community",
+    t1_text: "\"Finally something that understands my baby isn't like everyone else's. Can't wait for Lumio to launch!\"", t1_author: "— Milica, mom of 8-month-old Lena",
+    t2_text: "\"The pattern idea is genius. I'd never have connected beans with night waking without Lumio.\"", t2_author: "— Marko, dad of 6-month-old Nikola",
+    t3_text: "\"As a new mom I was constantly googling the same things. Lumio would save me so much stress.\"", t3_author: "— Ana, mom of 4-month-old Sofia",
+    cta_title: "Be among the first parents 🚀",
+    cta_sub: "Join the waitlist and get <strong>6 months of premium free</strong> at launch.",
+    cta_btn: "Join for free →",
+    footer_contact: "Contact", footer_made: "Made with ❤️ for new parents"
+  },
+  ru: {
+    nav_cta: "Присоединиться бесплатно",
+    badge: "🚀 Скоро — Запишитесь в лист ожидания",
+    hero_title_html: "Знаете ли вы, почему ваш малыш <span>просыпается ночью?</span>",
+    hero_sub: "Lumio — AI-ассистент, который действительно знает вашего ребёнка: запоминает, анализирует и даёт персональные советы.",
+    form_title: "🎉 Запишитесь в лист ожидания — бесплатно",
+    form_email_placeholder: "ваш@email.com",
+    form_problem_placeholder: "Какая ваша главная трудность как молодого родителя? (необязательно)",
+    form_btn: "Записаться в лист ожидания →",
+    form_note: "🔒 Никакого спама. Только уведомление о запуске Lumio.",
+    success_title: "Вы в списке!",
+    success_msg: "Спасибо! Мы свяжемся с вами, как только Lumio будет готов.",
+    counter_waitlist: "родителей в листе ожидания",
+    counter_months: "месяца до запуска",
+    counter_free: "базовая версия",
+    problem_label: "Проблема",
+    problem_title: "Каждый родитель знает это чувство 😰",
+    p1_title: "Общие ответы", p1_text: "Вы гуглите симптомы и получаете одинаковые ответы для всех детей. Но ваш малыш — особенный.",
+    p2_title: "10 минут у педиатра", p2_text: "Приём короткий, вопросов много, а следующий визит — через месяц.",
+    p3_title: "Паттерны, которые вы не замечаете", p3_text: "Связь между едой, сном и настроением существует — но кто успевает её анализировать?",
+    how_label: "Как это работает", how_title: "Просто как разговор",
+    s1_title: "Создайте профиль ребёнка", s1_text: "Возраст, вес, питание, привычки сна — один раз, и готово.",
+    s2_title: "Ведите дневник", s2_text: "Быстро записывайте еду и сон. Всего 30 секунд в день.",
+    s3_title: "Задавайте любые вопросы", s3_text: "Lumio знает именно вашего ребёнка и даёт конкретные персональные ответы.",
+    s4_title: "Обнаруживает паттерны", s4_text: "Автоматически находит связи, которые вы бы никогда не заметили сами.",
+    feat_label: "Функции", feat_title: "Всё необходимое в одном месте",
+    f1_title: "AI, который помнит", f1_text: "Каждый разговор учитывает всю историю вашего ребёнка.",
+    f2_title: "Обнаружение паттернов", f2_text: "Автоматически находит корреляции между едой, сном и настроением.",
+    f3_title: "PDF для врача", f3_text: "Создайте полный отчёт перед приёмом. Экономит время обоих.",
+    f4_title: "Неограниченные вопросы", f4_text: "Спрашивайте в 3 ночи, когда малыш плачет. Всегда доступно.",
+    f5_title: "Умные напоминания", f5_text: "График прививок, этапы развития, визиты к врачу — всё автоматически.",
+    f6_title: "Приватность прежде всего", f6_text: "Данные о вашем ребёнке никогда не передаются третьим лицам.",
+    testi_label: "Отзывы родителей", testi_title: "Голоса сообщества",
+    t1_text: "«Наконец-то что-то, что понимает: мой малыш не такой, как все. Жду запуска Lumio!»", t1_author: "— Милица, мама 8-месячной Лены",
+    t2_text: "«Идея с паттернами — гениальна. Без Lumio я никогда бы не связал фасоль с ночными пробуждениями.»", t2_author: "— Марко, папа 6-месячного Николы",
+    t3_text: "«Как молодая мама, я постоянно гуглила одно и то же. Lumio сэкономил бы мне столько сил.»", t3_author: "— Ана, мама 4-месячной Софии",
+    cta_title: "Будьте среди первых родителей 🚀",
+    cta_sub: "Запишитесь в лист ожидания и получите <strong>6 месяцев премиума бесплатно</strong> при запуске.",
+    cta_btn: "Присоединиться бесплатно →",
+    footer_contact: "Контакт", footer_made: "Сделано с ❤️ для молодых родителей"
+  }
+};
+
+let currentLang = 'en';
+
+function setLang(lang, el) {
+  currentLang = lang;
+  const t = translations[lang];
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t[key] !== undefined) {
+      if (key === 'hero_title_html' || key === 'cta_sub') {
+        el.innerHTML = t[key];
+      } else {
+        el.textContent = t[key];
+      }
+    }
+  });
+
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (t[key]) el.placeholder = t[key];
+  });
+}
+
+function scrollToForm() {
+  document.getElementById('waitlist-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => document.getElementById('email-input').focus(), 600);
+}
+
+async function submitForm() {
+  const email = document.getElementById('email-input').value.trim();
+  const problem = document.getElementById('problem-input').value.trim();
+  const btn = document.querySelector('.submit-btn');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').style.borderColor = '#EF4444';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    const res = await fetch('/api/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, problem, language: currentLang })
+    });
+
+    if (!res.ok) {
+      if (res.status === 400) {
+        document.getElementById('form-content').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+        return;
+      }
+      throw new Error('Error');
+    }
+
+    document.getElementById('form-content').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = translations[currentLang].form_btn;
+    alert('Something went wrong. Please try again.');
+  }
+}
+
+// Animate counter
+function animateCounter(target, duration) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const el = document.getElementById('counter');
+  const timer = setInterval(() => {
+    start += step;
+    if (start >= target) { el.textContent = target; clearInterval(timer); return; }
+    el.textContent = Math.floor(start);
+  }, 16);
+}
+
+const observer = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) { animateCounter(47, 1500); observer.disconnect(); }
+});
+observer.observe(document.getElementById('counter'));
+
+// Init
+setLang('en', document.querySelectorAll('.lang-btn')[1]);
+</script>
+</body>
+</html>
