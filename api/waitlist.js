@@ -1,18 +1,7 @@
-// /api/waitlist.js
-// Vercel Serverless Function
-//
-// Instalacija:
-//   npm install resend
-//
-// Environment varijable na Vercel dashboardu:
-//   RESEND_API_KEY  →  tvoj API ključ sa resend.com
-//   FROM_EMAIL      →  hello@lumio.baby (mora biti verifikovan u Resend)
-
 const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Confirmation emailovi na 3 jezika
 const emails = {
   en: {
     subject: "You're on the Lumio waitlist! 🎉",
@@ -53,14 +42,12 @@ Javićemo se!
 };
 
 module.exports = async function handler(req, res) {
-    // Samo POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   const { email, problem, language = "en" } = req.body;
 
-  // Validacija
   if (!email || !email.includes("@")) {
     return res.status(400).json({ error: "Invalid email address" });
   }
@@ -68,37 +55,39 @@ module.exports = async function handler(req, res) {
   try {
     const lang = emails[language] ? language : "en";
 
-    // 1. Dodaj kontakt u Resend Audience listu
+    // 1. Dodaj kontakt u Audience
     await resend.contacts.create({
       email,
       unsubscribed: false,
       audienceId: process.env.RESEND_AUDIENCE_ID,
-      // Čuvamo i odgovor na pitanje kao metadata
-      ...(problem && { firstName: "", lastName: "", data: { problem, language } })
     });
 
-// 2. Pošalji confirmation email korisniku
-await resend.emails.send({
-  from: process.env.FROM_EMAIL,
-  to: email,
-  subject: emails[lang].subject,
-  text: emails[lang].body
-});
+    // 2. Confirmation email korisniku
+    const confirmResult = await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: email,
+      subject: emails[lang].subject,
+      text: emails[lang].body
+    });
+    console.log("Confirm result:", JSON.stringify(confirmResult));
 
-// 3. Notification tebi — ne čekamo rezultat
-resend.emails.send({
-  from: process.env.FROM_EMAIL,
-  to: 'lumiobaby@gmail.com',
-  subject: `🎉 New Lumio signup: ${email}`,
-  text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
-}).catch(err => console.error("Notify failed:", err));
+    // 3. Sačekaj 1.1 sekunde
+    await new Promise(resolve => setTimeout(resolve, 1100));
 
-return res.status(200).json({ message: "Successfully joined the waitlist!" });
+    // 4. Notification tebi
+    const notifyResult = await resend.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: 'lumiobaby@gmail.com',
+      subject: `🎉 New Lumio signup: ${email}`,
+      text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
+    });
+    console.log("Notify result:", JSON.stringify(notifyResult));
+
+    return res.status(200).json({ message: "Successfully joined the waitlist!" });
 
   } catch (err) {
     console.error("Waitlist error:", err);
 
-    // Resend vraća grešku ako email već postoji u listi
     if (err.message?.includes("already exists")) {
       return res.status(400).json({ error: "Email already on waitlist." });
     }
