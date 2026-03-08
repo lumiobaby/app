@@ -88,7 +88,7 @@ export default async function handler(req, res) {
     // 3. Obavesti tebe kao osnivača (opciono ali korisno)
     await resend.emails.send({
       from: process.env.FROM_EMAIL,
-      to: process.env.FROM_EMAIL,
+      to: 'borkoarsovic@gmail.com',
       subject: `🎉 New Lumio signup: ${email}`,
       text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
     });
