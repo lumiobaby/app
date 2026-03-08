@@ -86,12 +86,14 @@ module.exports = async function handler(req, res) {
     });
 
     // 3. Obavesti tebe kao osnivača (opciono ali korisno)
-    await resend.emails.send({
-      from: process.env.FROM_EMAIL,
-      to: 'hello@lumio.baby',
-      subject: `🎉 New Lumio signup: ${email}`,
-      text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
-    });
+// 3. Obavesti tebe kao osnivača
+const notifyResult = await resend.emails.send({
+  from: process.env.FROM_EMAIL,
+  to: 'lumiobaby@gmail.com',
+  subject: `🎉 New Lumio signup: ${email}`,
+  text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
+});
+console.log("Notify result:", JSON.stringify(notifyResult));
 
     return res.status(200).json({ message: "Successfully joined the waitlist!" });
 
