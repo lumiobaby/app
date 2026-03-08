@@ -77,25 +77,23 @@ module.exports = async function handler(req, res) {
       ...(problem && { firstName: "", lastName: "", data: { problem, language } })
     });
 
-    // 2. Pošalji confirmation email korisniku
-    await resend.emails.send({
-      from: process.env.FROM_EMAIL,
-      to: email,
-      subject: emails[lang].subject,
-      text: emails[lang].body
-    });
+// 2. Pošalji confirmation email korisniku
+await resend.emails.send({
+  from: process.env.FROM_EMAIL,
+  to: email,
+  subject: emails[lang].subject,
+  text: emails[lang].body
+});
 
-    // 3. Obavesti tebe kao osnivača (opciono ali korisno)
-// 3. Obavesti tebe kao osnivača
-const notifyResult = await resend.emails.send({
+// 3. Notification tebi — ne čekamo rezultat
+resend.emails.send({
   from: process.env.FROM_EMAIL,
   to: 'lumiobaby@gmail.com',
   subject: `🎉 New Lumio signup: ${email}`,
   text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
-});
-console.log("Notify result:", JSON.stringify(notifyResult));
+}).catch(err => console.error("Notify failed:", err));
 
-    return res.status(200).json({ message: "Successfully joined the waitlist!" });
+return res.status(200).json({ message: "Successfully joined the waitlist!" });
 
   } catch (err) {
     console.error("Waitlist error:", err);
