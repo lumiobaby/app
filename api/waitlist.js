@@ -52,8 +52,8 @@ Javićemo se!
   }
 };
 
-export default async function handler(req, res) {
-  // Samo POST
+module.exports = async function handler(req, res) {
+    // Samo POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
     // 3. Obavesti tebe kao osnivača (opciono ali korisno)
     await resend.emails.send({
       from: process.env.FROM_EMAIL,
-      to: 'borkoarsovic@gmail.com',
+      to: 'lumiobaby@gmail.com',
       subject: `🎉 New Lumio signup: ${email}`,
       text: `New waitlist signup!\n\nEmail: ${email}\nLanguage: ${language}\nProblem: ${problem || "—"}`
     });
